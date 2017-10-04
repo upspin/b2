@@ -1,9 +1,8 @@
-# Upspin `TODO` repository
+# Upspin `b2` repository
 
-TODO: Short description of what this repository is about.
+Note: This repository is under construction.
+
+This repository contains support for running Upspin on
+[Backblaze B2 Cloud Storage](https://www.backblaze.com/b2/cloud-storage.html).
 
 See the [master repository](https://github.com/upspin/upspin#readme) for more information.
-
-## TODO
-
-TODO: Any details about this repository.
