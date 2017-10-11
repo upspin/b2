@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3b43a39_c4fab2f4",
+        "filename": "cmd/upspin-setupstorage-b2cs/setupstorage.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5361
+      },
+      "writtenOn": "2017-10-11T17:43:55Z",
+      "side": 1,
+      "message": "Can you wrap this line, please?",
+      "revId": "6b6c6688016b61ae2ccd16643e568074d491a7c0",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    }
+  ]
+}
