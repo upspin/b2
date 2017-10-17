@@ -33,6 +33,24 @@
       "revId": "01215f96522d655f2d184ab21705bf5be460f2ad",
       "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84e91d7a_5fe6360f",
+        "filename": "cmd/upspin-setupstorage-b2cs/setupstorage.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 6227
+      },
+      "writtenOn": "2017-10-17T07:13:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3333437f_82e747cd",
+      "revId": "01215f96522d655f2d184ab21705bf5be460f2ad",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": false
     }
   ]
 }
