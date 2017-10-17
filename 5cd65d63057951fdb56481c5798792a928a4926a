@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec77922a_473731c3",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-10-17T00:40:10Z",
+      "side": 1,
+      "message": "Please add a blank like above this one.",
+      "revId": "5cd65d63057951fdb56481c5798792a928a4926a",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28f0094d_d2388640",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-10-17T00:40:10Z",
+      "side": 1,
+      "message": "please add a blank line below this one, to separate this dependency from the upspin.io ones.",
+      "revId": "5cd65d63057951fdb56481c5798792a928a4926a",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da90b9e7_b5ba94c8",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-10-17T00:40:10Z",
+      "side": 1,
+      "message": "add a blank line above this one",
+      "revId": "5cd65d63057951fdb56481c5798792a928a4926a",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae8c2820_6e677340",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-10-17T00:40:10Z",
+      "side": 1,
+      "message": "I love switch statements but this should just be an if statement.",
+      "revId": "5cd65d63057951fdb56481c5798792a928a4926a",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "662ff043_e987bd9d",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-10-17T00:40:10Z",
+      "side": 1,
+      "message": "I think that you should store the context created in New, and use it in all the API calls, and then cancel it here when close is called. Do you agree?",
+      "revId": "5cd65d63057951fdb56481c5798792a928a4926a",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1bfefc1_13b6d673",
+        "filename": "cloud/storage/b2cs/b2cs_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-10-17T00:40:10Z",
+      "side": 1,
+      "message": "please add blank lines between all top-level declarations",
+      "revId": "5cd65d63057951fdb56481c5798792a928a4926a",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    }
+  ]
+}
