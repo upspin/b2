@@ -37,7 +37,7 @@ type b2csImpl struct {
 
 // New initializes a Storage implementation that stores data to B2 Cloud Storage.
 func New(opts *storage.Opts) (storage.Storage, error) {
-	const op = "cloud/storage/b2cs.New"
+	const op errors.Op = "cloud/storage/b2cs.New"
 	accountIDOpt, ok := opts.Opts[accountID]
 	if !ok {
 		return nil, errors.E(op, errors.Invalid, errors.Errorf("%q option is required", accountID))
@@ -82,7 +82,7 @@ var _ storage.Storage = (*b2csImpl)(nil)
 
 // LinkBase implements Storage.
 func (b2 *b2csImpl) LinkBase() (base string, err error) {
-	const op = "cloud/storage/b2cs.LinkBase"
+	const op errors.Op = "cloud/storage/b2cs.LinkBase"
 
 	if b2 == nil || b2.bucket == nil {
 		return "", errors.E(op, errors.Transient, errors.Errorf("B2 implementation is not initialized"))
@@ -99,7 +99,7 @@ func (b2 *b2csImpl) LinkBase() (base string, err error) {
 
 // Download implements Storage.
 func (b2 *b2csImpl) Download(ref string) ([]byte, error) {
-	const op = "cloud/storage/b2cs.Download"
+	const op errors.Op = "cloud/storage/b2cs.Download"
 	buf := &bytes.Buffer{}
 	r := b2.bucket.Object(ref).NewReader(b2.ctx)
 	_, err := io.Copy(buf, r)
@@ -118,7 +118,7 @@ func (b2 *b2csImpl) Download(ref string) ([]byte, error) {
 
 // Put implements Storage.
 func (b2 *b2csImpl) Put(ref string, contents []byte) error {
-	const op = "cloud/storage/b2cs.Put"
+	const op errors.Op = "cloud/storage/b2cs.Put"
 	buf := bytes.NewBuffer(contents)
 	w := b2.bucket.Object(ref).NewWriter(b2.ctx)
 	_, err := io.Copy(w, buf)
@@ -135,7 +135,7 @@ func (b2 *b2csImpl) Put(ref string, contents []byte) error {
 
 // Delete implements Storage.
 func (b2 *b2csImpl) Delete(ref string) error {
-	const op = "cloud/storage/b2cs.Delete"
+	const op errors.Op = "cloud/storage/b2cs.Delete"
 	o := b2.bucket.Object(ref)
 	err := o.Delete(b2.ctx)
 	if b2api.IsNotExist(err) {
