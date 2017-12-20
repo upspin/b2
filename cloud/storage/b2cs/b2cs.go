@@ -10,7 +10,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync"
 
+	"github.com/google/uuid"
 	b2api "github.com/kurin/blazer/b2"
 
 	"upspin.io/cloud/storage"
@@ -30,6 +32,9 @@ type b2csImpl struct {
 	client *b2api.Client
 	bucket *b2api.Bucket
 	access b2api.BucketType
+
+	cursorMap map[string]*b2api.Cursor
+	mu        sync.RWMutex
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -66,10 +71,11 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 	}
 
 	return &b2csImpl{
-		client: client,
-		bucket: bucket,
-		ctx:    ctx,
-		cancel: cancel,
+		client:    client,
+		bucket:    bucket,
+		ctx:       ctx,
+		cancel:    cancel,
+		cursorMap: make(map[string]*b2api.Cursor),
 	}, nil
 }
 
@@ -79,6 +85,24 @@ func init() {
 
 // Guarantee we implement the Storage interface.
 var _ storage.Storage = (*b2csImpl)(nil)
+
+func (b2 *b2csImpl) getCursor(key string) *b2api.Cursor {
+	b2.mu.RLock()
+	defer b2.mu.RUnlock()
+	return b2.cursorMap[key]
+}
+
+func (b2 *b2csImpl) setCursor(key string, c *b2api.Cursor) {
+	b2.mu.Lock()
+	defer b2.mu.Unlock()
+	b2.cursorMap[key] = c
+}
+
+func (b2 *b2csImpl) delCursor(key string) {
+	b2.mu.Lock()
+	defer b2.mu.Unlock()
+	delete(b2.cursorMap, key)
+}
 
 // LinkBase implements Storage.
 func (b2 *b2csImpl) LinkBase() (base string, err error) {
@@ -145,6 +169,55 @@ func (b2 *b2csImpl) Delete(ref string) error {
 		return errors.E(op, errors.IO, errors.Errorf("unable to delete ref %q from B2 bucket %q: %v", ref, b2.bucket.Name(), err))
 	}
 	return nil
+}
+
+// maxResults specifies the number of references to return from each call to
+// List. It is a variable here so that it may be overridden in tests.
+var maxResults = 1000
+
+// List implements storage.Lister.
+func (b2 *b2csImpl) List(token string) (refs []upspin.ListRefsItem, nextToken string, err error) {
+	const op = "cloud/storage/b2cs.List"
+
+	var cur *b2api.Cursor
+	if token != "" {
+		cur = b2.getCursor(token)
+		b2.delCursor(token)
+	}
+
+	objs, c, err := b2.bucket.ListCurrentObjects(b2.ctx, maxResults, cur)
+	if err != nil && err != io.EOF {
+		return refs, "", errors.E(op, errors.IO, errors.Errorf("unable to list objects: %v", err))
+	}
+
+	for _, obj := range objs {
+		attrs, err := obj.Attrs(b2.ctx)
+		if err != nil {
+			return refs, "", errors.E(op, errors.IO, errors.Errorf("unable to get object attributes %s: %v", obj.Name(), err))
+		}
+
+		refs = append(refs, upspin.ListRefsItem{
+			Ref:  upspin.Reference(obj.Name()),
+			Size: attrs.Size,
+		})
+	}
+
+	if err == io.EOF {
+		return refs, "", nil
+	}
+
+	if err != nil {
+		return refs, "", err
+	}
+
+	if err != nil {
+		return refs, "", errors.E(op, errors.IO, errors.Errorf("unable to encode token: %v", err))
+	}
+
+	tokenID := uuid.New()
+	b2.setCursor(tokenID.String(), c)
+
+	return refs, tokenID.String(), nil
 }
 
 // Close implements Storage.
