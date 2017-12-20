@@ -8,10 +8,12 @@ package b2cs // import "b2.upspin.io/cloud/storage/b2cs"
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"fmt"
 	"io"
 
 	b2api "github.com/kurin/blazer/b2"
+	"upspin.io/cache"
 
 	"upspin.io/cloud/storage"
 	"upspin.io/errors"
@@ -31,8 +33,16 @@ type b2csImpl struct {
 	bucket *b2api.Bucket
 	access b2api.BucketType
 
+	cursors *cache.LRU
+
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func randomToken() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
 
 // New initializes a Storage implementation that stores data to B2 Cloud Storage.
@@ -66,10 +76,11 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 	}
 
 	return &b2csImpl{
-		client: client,
-		bucket: bucket,
-		ctx:    ctx,
-		cancel: cancel,
+		client:  client,
+		bucket:  bucket,
+		ctx:     ctx,
+		cancel:  cancel,
+		cursors: cache.NewLRU(100),
 	}, nil
 }
 
@@ -145,6 +156,48 @@ func (b2 *b2csImpl) Delete(ref string) error {
 		return errors.E(op, errors.IO, errors.Errorf("unable to delete ref %q from B2 bucket %q: %v", ref, b2.bucket.Name(), err))
 	}
 	return nil
+}
+
+// maxResults specifies the number of references to return from each call to
+// List. It is a variable here so that it may be overridden in tests.
+var maxResults = 1000
+
+// List implements storage.Lister.
+func (b2 *b2csImpl) List(token string) (refs []upspin.ListRefsItem, nextToken string, err error) {
+	const op = "cloud/storage/b2cs.List"
+
+	var cur *b2api.Cursor
+	if token != "" {
+		if cursor, ok := b2.cursors.Get(token); ok {
+			cur = cursor.(*b2api.Cursor)
+		}
+	}
+
+	objs, c, err := b2.bucket.ListCurrentObjects(b2.ctx, maxResults, cur)
+	if err != nil && err != io.EOF {
+		return refs, "", errors.E(op, errors.IO, errors.Errorf("unable to list objects: %v", err))
+	}
+
+	for _, obj := range objs {
+		attrs, err2 := obj.Attrs(b2.ctx)
+		if err2 != nil {
+			return refs, "", errors.E(op, errors.IO, errors.Errorf("unable to get object attributes %s: %v", obj.Name(), err))
+		}
+
+		refs = append(refs, upspin.ListRefsItem{
+			Ref:  upspin.Reference(obj.Name()),
+			Size: attrs.Size,
+		})
+	}
+
+	if err == io.EOF {
+		return refs, "", nil
+	}
+
+	randToken := randomToken()
+	b2.cursors.Add(randToken, c)
+
+	return refs, randToken, nil
 }
 
 // Close implements Storage.
