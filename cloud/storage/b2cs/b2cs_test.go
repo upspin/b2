@@ -13,6 +13,7 @@ import (
 
 	"upspin.io/cloud/storage"
 	"upspin.io/log"
+	"upspin.io/upspin"
 )
 
 const defaultTestBucketName = "upspin-test-scratch"
@@ -26,7 +27,68 @@ var (
 	testAccountID = flag.String("account", "", "B2 Cloud Storage account ID")
 	testAppKey    = flag.String("appkey", "", "B2 Cloud Storage application key")
 	useB2CS       = flag.Bool("use_b2cs", false, "enable to run b2cs tests; requires Backblaze credentials")
+
+	objectContents = []byte(fmt.Sprintf("This is test at %v", time.Now()))
 )
+
+func TestListingEmptyContainer(t *testing.T) {
+	l := client.(*b2csImpl)
+	refs, nextToken, err := l.List("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(refs) != 0 {
+		t.Errorf("List returned %d refs, want 0", len(refs))
+	}
+	if nextToken != "" {
+		t.Errorf("List returned token %q, want empty string", nextToken)
+	}
+}
+
+func TestListingWithPagination(t *testing.T) {
+	putRefs := make([]string, 10)
+	for i := 0; i < 10; i++ {
+		ref := fmt.Sprintf("ref%d", i)
+		putRefs[i] = ref
+		if err := client.Put(ref, objectContents); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	refs, callCount, err := getAllRefs(3, len(putRefs))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(refs) != len(putRefs) {
+		t.Errorf("Listed %d refs, want %d", len(refs), len(putRefs))
+	}
+	if want := 4; callCount != want {
+		t.Errorf("List split into %d pages, want %d", callCount, want)
+	}
+}
+
+func getAllRefs(perPage int, maxCalls int) (allRefs []upspin.ListRefsItem, callCount int, err error) {
+	l := client.(*b2csImpl)
+	var token string
+
+	oldMax := maxResults
+	maxResults = perPage
+	defer func() { maxResults = oldMax }()
+
+	for callCount < maxCalls {
+		var refs []upspin.ListRefsItem
+		refs, token, err = l.List(token)
+		callCount++
+		if err != nil {
+			break
+		}
+		allRefs = append(allRefs, refs...)
+		if token == "" {
+			break
+		}
+	}
+	return
+}
 
 // The tests run against the live B2 Cloud Storage, not against a mocked B2
 // service. Because of that, credentials for an existing B2 account need to be
