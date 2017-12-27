@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e9be3ab_fc69c4f0",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-12-27T00:29:07Z",
+      "side": 1,
+      "message": "put this with the other upspin.io imports",
+      "revId": "e0e96275bd75b1c9303564bf19e41a0ff1309bd6",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5154b91e_73559a36",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-12-27T00:29:07Z",
+      "side": 1,
+      "message": "if they give an unknown token we should return an error.",
+      "revId": "e0e96275bd75b1c9303564bf19e41a0ff1309bd6",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4487fb3_28cda14a",
+        "filename": "cloud/storage/b2cs/b2cs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-12-27T00:29:07Z",
+      "side": 1,
+      "message": "nextToken \u003d",
+      "range": {
+        "startLine": 197,
+        "startChar": 1,
+        "endLine": 197,
+        "endChar": 10
+      },
+      "revId": "e0e96275bd75b1c9303564bf19e41a0ff1309bd6",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6aa92de6_f15f7205",
+        "filename": "cloud/storage/b2cs/b2cs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5389
+      },
+      "writtenOn": "2017-12-27T00:29:07Z",
+      "side": 1,
+      "message": "you should reset this after making the call\n\noldMax :\u003d maxResults\nmaxResults \u003d perPage\ndefer func() { maxResults \u003d oldMax }()",
+      "revId": "e0e96275bd75b1c9303564bf19e41a0ff1309bd6",
+      "serverId": "0759ed4b-3fdc-34dc-866b-f2e708168c03",
+      "unresolved": true
+    }
+  ]
+}
