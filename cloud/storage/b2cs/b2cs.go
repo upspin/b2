@@ -162,25 +162,31 @@ func (b2 *b2csImpl) Delete(ref string) error {
 // List. It is a variable here so that it may be overridden in tests.
 var maxResults = 1000
 
-// List implements storage.Lister.
+func (b2 *b2csImpl) getIter(token string) (*b2api.ObjectIterator, error) {
+	const op = "cloud/storage/b2cs.List"
+	if token == "" {
+		return b2.bucket.List(b2.ctx, b2api.ListPageSize(maxResults)), nil
+	}
+	iterator, ok := b2.cursors.Get(token)
+	if !ok {
+		return nil, errors.E(op, errors.IO, errors.Errorf("unknown token: %q", token))
+	}
+	b2.cursors.Remove(token)
+	iter := iterator.(*b2api.ObjectIterator)
+	return iter, nil
+}
+
+// List implements storage.Lister.  Once a pagination token is used, it cannot be reused.
 func (b2 *b2csImpl) List(token string) (refs []upspin.ListRefsItem, nextToken string, err error) {
 	const op = "cloud/storage/b2cs.List"
 
-	var cur *b2api.Cursor
-	if token != "" {
-		if cursor, ok := b2.cursors.Get(token); ok {
-			cur = cursor.(*b2api.Cursor)
-		} else {
-			return refs, "", errors.E(op, errors.IO, errors.Errorf("unknown token: %q", token))
-		}
+	iter, err := b2.getIter(token)
+	if err != nil {
+		return refs, "", err
 	}
 
-	objs, c, err := b2.bucket.ListCurrentObjects(b2.ctx, maxResults, cur)
-	if err != nil && err != io.EOF {
-		return refs, "", errors.E(op, errors.IO, errors.Errorf("unable to list objects: %v", err))
-	}
-
-	for _, obj := range objs {
+	for i := 0; i < maxResults && iter.Next(); i++ {
+		obj := iter.Object()
 		attrs, err2 := obj.Attrs(b2.ctx)
 		if err2 != nil {
 			return refs, "", errors.E(op, errors.IO, errors.Errorf("unable to get object attributes %q: %v", obj.Name(), err))
@@ -192,12 +198,12 @@ func (b2 *b2csImpl) List(token string) (refs []upspin.ListRefsItem, nextToken st
 		})
 	}
 
-	if err == io.EOF {
-		return refs, "", nil
+	if iter.Err() != nil || len(refs) < maxResults {
+		return refs, "", iter.Err()
 	}
 
 	nextToken = randomToken()
-	b2.cursors.Add(nextToken, c)
+	b2.cursors.Add(nextToken, iter)
 
 	return refs, nextToken, nil
 }
@@ -210,23 +216,16 @@ func (b2 *b2csImpl) Close() {
 }
 
 func (b2 *b2csImpl) deleteBucket() error {
-	var (
-		c       *b2api.Cursor
-		listErr error
-	)
 	// Remove all content from the bucket first,
 	// otherwise the deletion will fail.
-	for listErr != io.EOF {
-		var objs []*b2api.Object
-		objs, c, listErr = b2.bucket.ListObjects(b2.ctx, 128, c)
-		if listErr != nil && listErr != io.EOF {
-			return listErr
+	iter := b2.bucket.List(b2.ctx, b2api.ListHidden(), b2api.ListPageSize(128))
+	for iter.Next() {
+		if err := iter.Object().Delete(b2.ctx); err != nil {
+			return err
 		}
-		for i := range objs {
-			if err := objs[i].Delete(b2.ctx); err != nil {
-				return err
-			}
-		}
+	}
+	if err := iter.Err(); err != nil {
+		return err
 	}
 	return b2.bucket.Delete(b2.ctx)
 }
